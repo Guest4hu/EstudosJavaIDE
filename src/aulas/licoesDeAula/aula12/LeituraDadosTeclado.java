@@ -1,4 +1,4 @@
-package aulas.licoesDeAula.aula12;
+package aulas.licoesdeaula.aula12;
 
 import java.util.Scanner;
 

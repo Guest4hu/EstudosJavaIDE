@@ -1,4 +1,4 @@
-package aulas.licoesDeAula.aula13;
+package aulas.licoesdeaula.aula13;
 
 public class OperadoresAritmeticos {
     public static void main(String[] args) {

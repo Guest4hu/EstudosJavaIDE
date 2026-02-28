@@ -1,4 +1,4 @@
-package aulas.licoesDeAula.aula10;
+package aulas.licoesdeaula.aula10;
 
 public class Variaveis {
     public static void main(String[] args) {

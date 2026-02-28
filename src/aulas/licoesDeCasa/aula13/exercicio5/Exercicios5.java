@@ -1,4 +1,4 @@
-package aulas.licoesDeCasa.aula13.exercicio5;
+package aulas.licoesdecasa.aula13.exercicio5;
 import java.util.Scanner;
 public class Exercicios5 {
     public static void main(String[] args) {
