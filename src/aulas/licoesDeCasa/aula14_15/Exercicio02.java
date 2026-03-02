@@ -14,5 +14,6 @@ public class Exercicio02 {
         } else {
             System.out.println("O numero é zero");
         }
+        ler.close();
     }
 }
