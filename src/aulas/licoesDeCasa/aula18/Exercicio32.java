@@ -8,21 +8,23 @@ public class Exercicio32 {
             a[i] = (int) (Math.random() * Integer.MAX_VALUE);
         }
 
-        for (int valorA: a) {
+        for (int valorA : a) {
+            if (valorA <= 1) {
+                System.out.println("Esse número não é primo: " + valorA);
+                continue;
+            }
+            boolean primo = true;
             for (int i = 2; i <= Math.sqrt(valorA); i++) {
-                if (valorA % i != 0) {
-                    System.out.println("Esse número é primo: " + valorA);
-                    break;
-                } else {
-                    System.out.println("Esse número não é primo: " + valorA);
+                if (valorA % i == 0) {
+                    primo = false;
                     break;
                 }
-
+            }
+            if (primo) {
+                System.out.println("Esse número é primo: " + valorA);
+            } else {
+                System.out.println("Esse número não é primo: " + valorA);
             }
         }
-
-
-
     }
-
 }
