@@ -5,7 +5,7 @@ Projeto educacional com exercícios e exemplos de Java para iniciantes.
 ## 📁 Estrutura
 
 ```
-src/aulas/
+src/LoianeTrainingJavaAulas/
 ├── licoesdeaula/        # Aulas teóricas
 │   ├── aula10/          # Variáveis
 │   ├── aula11/          # Tipos de dados
