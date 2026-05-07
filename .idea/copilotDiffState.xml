@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="/Teste (snapshot).java">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="/Teste (snapshot).java" />
+              <option name="originalContent" value="package LoianeTrainingJavaAulas.licoesdecasa.aula34;&#10;&#10;import LoianeTrainingJavaAulas.licoesdeaula.aula16.While;&#10;&#10;public class Teste {&#10;    public static void main(String[] args) {&#10;        ThreadSemaforo verde = new ThreadSemaforo(&quot;Verde&quot;, &quot;Pode Andar&quot;);&#10;        ThreadSemaforo amarelo = new ThreadSemaforo(&quot;Amarelo&quot;, &quot;Cuidado vai Fechar&quot;);&#10;        ThreadSemaforo vermelho = new ThreadSemaforo(&quot;Vermelho&quot;, &quot;Fechado&quot;);&#10;&#10;        try {&#10;            // Aguarda threads iniciarem&#10;            Thread.sleep(500);&#10;            &#10;            amarelo.suspend();&#10;            vermelho.suspend();&#10;            Thread.sleep(1000);&#10;            &#10;            verde.suspend();&#10;            amarelo.resume();&#10;            Thread.sleep(300);&#10;            &#10;            amarelo.suspend();&#10;            vermelho.resume();&#10;            Thread.sleep(300);&#10;            &#10;            vermelho.suspend();&#10;            verde.resume();&#10;            &#10;            Thread.sleep(1000);&#10;            verde.stop();&#10;            amarelo.stop();&#10;            vermelho.stop();&#10;        } catch (InterruptedException e) {&#10;            throw new RuntimeException(e);&#10;        }&#10;    }&#10;}&#10;" />
+              <option name="updatedContent" value="package LoianeTrainingJavaAulas.licoesdecasa.aula34;&#10;&#10;public class Teste {&#10;    public static void main(String[] args) {&#10;        ThreadSemaforo verde = new ThreadSemaforo(&quot;Verde&quot;, &quot;Pode Andar&quot;);&#10;        ThreadSemaforo amarelo = new ThreadSemaforo(&quot;Amarelo&quot;, &quot;Cuidado vai Fechar&quot;);&#10;        ThreadSemaforo vermelho = new ThreadSemaforo(&quot;Vermelho&quot;, &quot;Fechado&quot;);&#10;&#10;        try {&#10;            // Aguarda threads iniciarem&#10;            Thread.sleep(500);&#10;            &#10;            amarelo.suspend();&#10;            vermelho.suspend();&#10;            Thread.sleep(1000);&#10;            &#10;            verde.suspend();&#10;            amarelo.resume();&#10;            Thread.sleep(300);&#10;            &#10;            amarelo.suspend();&#10;            vermelho.resume();&#10;            Thread.sleep(300);&#10;            &#10;            vermelho.suspend();&#10;            verde.resume();&#10;            &#10;            Thread.sleep(1000);&#10;            verde.stop();&#10;            amarelo.stop();&#10;            vermelho.stop();&#10;        } catch (InterruptedException e) {&#10;            throw new RuntimeException(e);&#10;        }&#10;    }&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
