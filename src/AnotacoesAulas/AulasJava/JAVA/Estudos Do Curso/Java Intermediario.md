@@ -2141,3 +2141,758 @@ double valor = Double.parseDouble(valorLimpo); // → 1500.0
 |`strip()`|Remove whitespace Unicode das extremidades (Java 11+)|`String`|
 |`stripLeading()`|Remove whitespace só do início (Java 11+)|`String`|
 |`stripTrailing()`|Remove whitespace só do fim (Java 11+)|`String`|
+
+
+# 🔡 Java String — Case, Join e Split
+
+> **Status:** `revisado` | **Curso:** Oracle Java Fundamentos | **Tópico:** [[Strings]]
+
+---
+
+## 1️⃣ `toLowerCase()` e `toUpperCase()` — Converter Caixa
+
+java
+
+```java
+String teste = "Isso E UM TEste";
+
+String testeMinuscula = teste.toLowerCase(); // → "isso e um teste"
+String testeMaiuscula = teste.toUpperCase(); // → "ISSO E UM TESTE"
+```
+
+Ambos percorrem a String caractere por caractere e aplicam a conversão. A String original não é alterada (imutabilidade).
+
+### Versões com `Locale` — Cuidado com internacionalização
+
+java
+
+```java
+// Sem Locale — usa o padrão do sistema operacional (pode variar)
+"TITLE".toLowerCase();
+
+// Com Locale — comportamento previsível em qualquer ambiente
+"TITLE".toLowerCase(Locale.forLanguageTag("pt-BR")); // → "title"
+"title".toUpperCase(Locale.ENGLISH);                 // → "TITLE"
+```
+
+> ⚠️ **Por que isso importa?** Em alguns idiomas, a conversão de caixa tem regras diferentes. O caso mais famoso é o turco: `"I".toLowerCase()` em um sistema configurado com locale turco retorna `"ı"` (i sem ponto), não `"i"`. Em sistemas de produção que rodam em múltiplos países, sempre passe o `Locale` explicitamente.
+
+### Uso prático
+
+java
+
+```java
+// Comparação sem distinção de caixa (alternativa a equalsIgnoreCase)
+if (entrada.toLowerCase().equals("sim")) { ... }
+
+// Normalizar dado antes de salvar no banco
+String emailNormalizado = email.trim().toLowerCase();
+// "  Usuario@Empresa.COM  " → "usuario@empresa.com"
+
+// Formatar exibição
+String titulo = palavra.substring(0, 1).toUpperCase()
+              + palavra.substring(1).toLowerCase();
+// "jAVA" → "Java"
+```
+
+---
+
+## 2️⃣ `String.join()` — Juntar Elementos com Delimitador
+
+java
+
+```java
+String alfabeto = String.join(", ", "A", "B", "C");
+// → "A, B, C"
+```
+
+> ⚠️ **Correção no código original:** O resultado esperado seria `"A, B, C"` — não `"A, B, C,"` com vírgula no final. `join()` coloca o delimitador **entre** os elementos, nunca após o último.
+
+### Assinatura
+
+java
+
+```java
+String.join(CharSequence delimiter, CharSequence... elements)
+String.join(CharSequence delimiter, Iterable<? extends CharSequence> elements)
+```
+
+|Parâmetro|Significado|Valor no exemplo|
+|---|---|---|
+|`delimiter`|Separador inserido **entre** cada elemento|`", "`|
+|`elements`|Elementos a unir (varargs ou `List`)|`"A"`, `"B"`, `"C"`|
+
+### Com List — uso muito comum
+
+java
+
+```java
+List<String> nomes = List.of("Ana", "Bruno", "Carlos");
+
+String resultado = String.join(" | ", nomes);
+// → "Ana | Bruno | Carlos"
+
+String csv = String.join(",", nomes);
+// → "Ana,Bruno,Carlos"
+```
+
+### `join()` vs `StringBuilder` com loop
+
+java
+
+```java
+// ✅ String.join() — conciso e legível para coleções prontas
+String resultado = String.join(", ", lista);
+
+// ✅ StringBuilder — mais flexível quando precisa filtrar ou transformar
+StringBuilder sb = new StringBuilder();
+for (String item : lista) {
+    if (!item.isEmpty()) {
+        if (sb.length() > 0) sb.append(", ");
+        sb.append(item);
+    }
+}
+
+// ✅ Java 8+ — Collectors.joining() em Streams
+String resultado = lista.stream()
+    .filter(s -> !s.isEmpty())
+    .collect(Collectors.joining(", "));
+```
+
+---
+
+## 3️⃣ `split()` — Separar String em Array
+
+É o inverso do `join()` — divide uma String em um array de Strings usando um **delimitador como Regex**.
+
+java
+
+```java
+String alfabeto = String.join(", ", "A", "B", "C"); // → "A, B, C"
+String[] letras = alfabeto.split(", ");              // → ["A", "B", "C"]
+
+System.out.println(letras[0]); // → "A"
+System.out.println(letras[1]); // → "B"
+System.out.println(letras[2]); // → "C"
+```
+
+### Assinatura
+
+java
+
+```java
+str.split(String regex)
+str.split(String regex, int limit)
+```
+
+|Parâmetro|Significado|
+|---|---|
+|`regex`|Delimitador (aceita expressões regulares)|
+|`limit`|Limite de partes geradas (opcional) — `0` = sem limite, `n` = máximo `n` partes|
+
+> ⚠️ **`split()` aceita Regex** — certos caracteres têm significado especial e precisam ser escapados:
+
+java
+
+```java
+// ❌ Erro — '.' em Regex significa "qualquer caractere"
+"a.b.c".split(".");   // → [] (array vazio — inesperado)
+
+// ✅ Correto — escapar o ponto com \\
+"a.b.c".split("\\.");  // → ["a", "b", "c"]
+
+// Outros caracteres que precisam de escape: | + * ? ( ) [ ] { } ^ $ \
+"a|b|c".split("\\|");  // → ["a", "b", "c"]
+```
+
+### `split()` com `limit`
+
+java
+
+```java
+String linha = "1;Antonio;30;SP;Brasil";
+
+// Sem limit — divide em todas as partes
+String[] tudo = linha.split(";");
+// → ["1", "Antonio", "30", "SP", "Brasil"]
+
+// Com limit = 3 — divide em no máximo 3 partes
+String[] parcial = linha.split(";", 3);
+// → ["1", "Antonio", "30;SP;Brasil"]  (o restante fica junto na última parte)
+```
+
+---
+
+## 4️⃣ Exemplo Real — Parsing de Flat File com `split()`
+
+O `split()` é um dos principais recursos para leitura de **arquivos CSV** e **Flat Files** — formatos amplamente usados em integração entre sistemas (WebServices, ETL, bancos legados).
+
+java
+
+```java
+public class ExemploSplit {
+    public static void main(String[] args) {
+
+        // Linha de um Flat File delimitado por ';'
+        // Formato: id;nome;idade
+        String linhaArquivo = "1;Antonio;30";
+
+        String[] campos = linhaArquivo.split(";");
+        //           campos[0] = "1"
+        //           campos[1] = "Antonio"
+        //           campos[2] = "30"
+
+        int    id    = Integer.parseInt(campos[0]); // String → int
+        String nome  = campos[1];
+        int    idade = Integer.parseInt(campos[2]); // String → int
+
+        Pessoa funcionario = new Pessoa(id, nome, idade);
+    }
+}
+```
+
+> **`Integer.parseInt()`** converte uma `String` numérica para `int`. Se a String não for um número válido, lança `NumberFormatException`.
+
+java
+
+```java
+Integer.parseInt("30")   // → 30      ✅
+Integer.parseInt("abc")  // → NumberFormatException ❌
+Integer.parseInt(" 30")  // → NumberFormatException ❌ (espaço causa erro — use trim() antes)
+
+// ✅ Boa prática: trim() antes de parseInt()
+int idade = Integer.parseInt(campos[2].trim());
+```
+
+### Lendo múltiplas linhas de um arquivo CSV
+
+java
+
+```java
+// Simulando leitura de um arquivo CSV com cabeçalho
+String csv = """
+        id;nome;idade
+        1;Antonio;30
+        2;Maria;25
+        3;Carlos;40
+        """;
+
+String[] linhas = csv.split("\n");  // divide por quebra de linha
+
+List<Pessoa> pessoas = new ArrayList<>();
+
+for (int i = 1; i < linhas.length; i++) {  // começa em 1 para pular o cabeçalho
+    String linha = linhas[i].trim();
+    if (linha.isEmpty()) continue;          // ignora linhas em branco
+
+    String[] campos = linha.split(";");
+    int    id    = Integer.parseInt(campos[0].trim());
+    String nome  = campos[1].trim();
+    int    idade = Integer.parseInt(campos[2].trim());
+
+    pessoas.add(new Pessoa(id, nome, idade));
+}
+```
+
+### Contextos de uso — Integração de Sistemas
+
+|Formato|Delimitador comum|Exemplo de uso|
+|---|---|---|
+|**CSV**|`,` ou `;`|Exportação de planilhas, relatórios|
+|**TSV**|`\t` (tab)|Dados de banco de dados|
+|**Flat File posicional**|`substring()` (sem delimitador)|Sistemas bancários, governo|
+|**JSON / XML**|Parseado com bibliotecas|WebServices REST / SOAP|
+|**Log files**|Espaço, `\|`, `:`|Análise de logs de servidor|
+
+---
+
+## 📊 Resumo dos Métodos
+
+|Método|O que faz|Retorna|
+|---|---|---|
+|`toLowerCase()`|Converte toda a String para minúsculas|`String`|
+|`toUpperCase()`|Converte toda a String para maiúsculas|`String`|
+|`toLowerCase(Locale)`|Conversão com locale explícito|`String`|
+|`String.join(delim, ...)`|Une elementos com delimitador entre eles|`String`|
+|`split(regex)`|Divide String em array pelo padrão regex|`String[]`|
+|`split(regex, limit)`|Divide em no máximo `limit` partes|`String[]`|
+|`Integer.parseInt(str)`|Converte String numérica para `int`|`int`|
+
+
+# 🏗️ Java — StringBuilder e StringBuffer
+
+> **Status:** `revisado` | **Curso:** Oracle Java Fundamentos | **Tópico:** [[Strings]]
+
+---
+
+## 🧭 Por que existem?
+
+Como visto em `[[Java-String-Concatenacao-e-Imutabilidade]]`, Strings em Java são **imutáveis** — cada concatenação com `+` ou `+=` cria um **novo objeto** na memória e descarta o anterior.
+
+java
+
+```java
+// ❌ MÁ PRÁTICA — cria N objetos String descartados
+String resultado = "";
+for (String letra : letras) {
+    resultado += letra; // novo objeto a cada iteração → Garbage Collector sobrecarregado
+}
+```
+
+`StringBuilder` e `StringBuffer` resolvem isso com um **buffer mutável interno** — um array de `char` que cresce conforme necessário, sem criar objetos intermediários.
+
+```
+String com +=:       "A" → "AB" → "ABC" → "ABCD"   (4 objetos criados, 3 descartados)
+StringBuilder:       [A | B | C | D | _ | _ ]         (1 objeto, buffer expandido)
+```
+
+---
+
+## 1️⃣ `StringBuffer` — Concatenação Thread-Safe
+
+java
+
+```java
+public class StringBufferAppend {
+    public static void main(String[] args) {
+        String[] letras = {"A", "B", "C", "D", "E"};
+
+        StringBuffer sb = new StringBuffer(); // buffer vazio, capacidade inicial de 16 chars
+
+        for (String letra : letras) {
+            sb.append(letra); // adiciona ao buffer sem criar novo objeto
+        }
+
+        String resultado = sb.toString(); // converte para String imutável ao final
+        System.out.println(resultado);    // → "ABCDE"
+    }
+}
+```
+
+### `reverse()` — Inverter o conteúdo do buffer
+
+> ⚠️ **Correção no código original:** `reverse()` é um método do `StringBuffer`/`StringBuilder`, não da classe `String`. O código tentava chamar `teste.reverse()` em uma `String`, o que não existe e causaria erro de compilação. O correto é:
+
+java
+
+```java
+public class StringBufferReverse {
+    public static void main(String[] args) {
+        StringBuffer sb = new StringBuffer("teste");
+
+        String aoContrario = sb.reverse().toString();
+        System.out.println(aoContrario); // → "etset"
+    }
+}
+```
+
+---
+
+## 2️⃣ `StringBuilder` — Concatenação de Alta Performance
+
+Funciona de forma idêntica ao `StringBuffer` em termos de API — os métodos são os mesmos. A diferença está apenas no comportamento em ambientes multi-thread.
+
+java
+
+```java
+public class StringBuilderExemplo {
+    public static void main(String[] args) {
+        String[] letras = {"A", "B", "C", "D", "E"};
+
+        StringBuilder sb = new StringBuilder();
+
+        for (String letra : letras) {
+            sb.append(letra);
+        }
+
+        System.out.println(sb.toString()); // → "ABCDE"
+    }
+}
+```
+
+---
+
+## ⚡ Diferença Central — Thread Safety
+
+||`StringBuilder`|`StringBuffer`|
+|---|---|---|
+|**Thread-safe**|❌ Não|✅ Sim|
+|**Performance**|✅ Mais rápido|⚠️ Mais lento|
+|**Como funciona**|Sem sincronização|Métodos `synchronized`|
+|**Quando usar**|Single-thread (uso geral)|Multi-thread (instância compartilhada entre threads)|
+
+### Por que `StringBuffer` é mais lento?
+
+Cada método do `StringBuffer` é marcado com `synchronized` — isso significa que apenas **uma thread por vez** pode executá-lo. Essa garantia tem um custo de performance que não faz sentido pagar quando não há concorrência.
+
+java
+
+```java
+// Internamente no StringBuffer (simplificado):
+public synchronized StringBuffer append(String str) {
+    // só uma thread executa isto por vez
+    super.append(str);
+    return this;
+}
+
+// Internamente no StringBuilder (simplificado):
+public StringBuilder append(String str) {
+    // sem synchronized — qualquer thread pode executar ao mesmo tempo
+    super.append(str);
+    return this;
+}
+```
+
+> **Relacionado:** `[[Java-Threads-Deadlocks-e-Semaforo]]` — `synchronized` e Thread Safety
+
+### Quando usar `StringBuffer` na prática?
+
+Somente quando o **mesmo objeto** `StringBuffer` for acessado por **múltiplas threads simultaneamente**. Na maioria dos casos, variáveis locais de método já são isoladas por thread naturalmente, tornando `StringBuffer` desnecessário mesmo em código multi-thread.
+
+java
+
+```java
+// ✅ StringBuilder é suficiente aqui — sb é variável LOCAL, não compartilhada entre threads
+public String montarRelatorio(List<String> linhas) {
+    StringBuilder sb = new StringBuilder(); // cada thread tem o seu próprio sb
+    for (String linha : linhas) {
+        sb.append(linha).append("\n");
+    }
+    return sb.toString();
+}
+
+// ⚠️ StringBuffer necessário aqui — sb é campo de instância compartilhado entre threads
+public class Logger {
+    private StringBuffer log = new StringBuffer(); // compartilhado → thread-safe necessário
+
+    public void registrar(String mensagem) {
+        log.append(mensagem).append("\n"); // múltiplas threads podem chamar isso
+    }
+}
+```
+
+---
+
+## 🛠️ Métodos Principais (Comuns a Ambos)
+
+java
+
+```java
+StringBuilder sb = new StringBuilder("Java");
+
+// append — adiciona ao final (aceita String, int, char, boolean, double, Object...)
+sb.append(" é");
+sb.append(" incrível");
+System.out.println(sb); // → "Java é incrível"
+
+// insert — insere em uma posição específica
+sb.insert(4, " ainda");
+System.out.println(sb); // → "Java ainda é incrível"
+
+// delete — remove do índice begin (inclusivo) até end (exclusivo)
+sb.delete(5, 11);
+System.out.println(sb); // → "Java é incrível"
+
+// replace — substitui trecho
+sb.replace(0, 4, "Python");
+System.out.println(sb); // → "Python é incrível"
+
+// reverse — inverte o buffer
+sb.reverse();
+System.out.println(sb); // → "levírcni é nohtyP"
+
+// charAt / indexOf / length — mesmos que String
+System.out.println(sb.length());    // tamanho atual do buffer
+System.out.println(sb.charAt(0));   // primeiro caractere
+System.out.println(sb.indexOf("é")); // posição do 'é'
+
+// toString — converte para String imutável
+String resultado = sb.toString();
+
+// deleteCharAt — remove um único caractere
+sb.deleteCharAt(0);
+
+// setCharAt — substitui um único caractere
+sb.setCharAt(0, 'X');
+```
+
+### Method Chaining — Encadeamento de chamadas
+
+Como cada método retorna o próprio `StringBuilder`/`StringBuffer`, é possível encadear chamadas:
+
+java
+
+```java
+String resultado = new StringBuilder()
+    .append("Olá, ")
+    .append("mundo")
+    .append("!")
+    .reverse()
+    .toString();
+// → "!odnum ,álO"
+```
+
+---
+
+## 📊 Comparativo Final — String vs StringBuilder vs StringBuffer
+
+||`String`|`StringBuilder`|`StringBuffer`|
+|---|---|---|---|
+|**Mutável**|❌ Não|✅ Sim|✅ Sim|
+|**Thread-safe**|✅ Sim (imutável)|❌ Não|✅ Sim|
+|**Performance**|❌ Ruim em loops|✅ Melhor|⚠️ Boa, com overhead|
+|**Uso recomendado**|Valores fixos, literais|Concatenação em single-thread|Concatenação em multi-thread compartilhada|
+|**`reverse()`**|❌ Não existe|✅ Sim|✅ Sim|
+|**`append()`**|❌ Não existe|✅ Sim|✅ Sim|
+
+---
+
+## 💡 Guia Rápido — O que usar?
+
+```
+Você está concatenando Strings?
+│
+├── NÃO → use String normalmente
+│
+└── SIM
+    ├── Poucas concatenações (2-3) fora de loop?
+    │       └── String com + é aceitável ✅
+    │
+    ├── Muitas concatenações ou dentro de loop?
+    │   │
+    │   ├── Single-thread ou variável local?
+    │   │       └── StringBuilder ✅ (mais rápido)
+    │   │
+    │   └── Multi-thread com instância compartilhada?
+    │           └── StringBuffer ✅ (thread-safe)
+    │
+    └── Java 8+ com Stream?
+            └── Collectors.joining(", ") ✅
+```
+
+
+# 🔤 Java — StringTokenizer
+
+> **Status:** `revisado` | **Curso:** Oracle Java Fundamentos | **Tópico:** [[Strings]]
+
+---
+
+## 🧭 O que é um Token?
+
+Um **token** é um pedaço de texto extraído de uma String maior com base em um **delimitador**. O `StringTokenizer` percorre a String e entrega um token por vez, sem precisar criar um array completo de antemão — o que pode ser mais eficiente para arquivos muito grandes.
+
+```
+String:  "joao;1;34"
+Tokens:   "joao"  →  "1"  →  "34"
+```
+
+---
+
+## 🏗️ Construtores do `StringTokenizer`
+
+java
+
+```java
+// Construtor 1 — delimitador padrão: espaço, tab, newline, form feed
+StringTokenizer st = new StringTokenizer("joao 1 34");
+
+// Construtor 2 — delimitador customizado (mais comum)
+StringTokenizer st = new StringTokenizer("joao;1;34", ";");
+
+// Construtor 3 — delimitador customizado + retornar os próprios delimitadores como tokens
+StringTokenizer st = new StringTokenizer("joao;1;34", ";", true);
+// tokens: "joao", ";", "1", ";", "34"
+```
+
+---
+
+## 1️⃣ Uso Básico
+
+java
+
+```java
+import java.util.StringTokenizer;
+
+public class ExemploStringTokenizer {
+    public static void main(String[] args) {
+        String arquivo = "joao;1;34";
+        StringTokenizer st = new StringTokenizer(arquivo, ";");
+
+        while (st.hasMoreTokens()) {            // enquanto houver tokens → true
+            System.out.println(st.nextToken()); // lê e avança para o próximo token
+        }
+    }
+}
+```
+
+**Output:**
+
+```
+joao
+1
+34
+```
+
+### Como o loop funciona
+
+```
+Iteração 1: hasMoreTokens() → true  | nextToken() → "joao"
+Iteração 2: hasMoreTokens() → true  | nextToken() → "1"
+Iteração 3: hasMoreTokens() → true  | nextToken() → "34"
+Iteração 4: hasMoreTokens() → false | loop encerra
+```
+
+> ⚠️ **Chamar `nextToken()` quando não há mais tokens lança `NoSuchElementException`**. O `while (st.hasMoreTokens())` previne isso — sempre cheque antes de consumir.
+
+---
+
+## 2️⃣ Métodos do `StringTokenizer`
+
+|Método|Retorna|O que faz|
+|---|---|---|
+|`hasMoreTokens()`|`boolean`|`true` se ainda há tokens a consumir|
+|`nextToken()`|`String`|Retorna o próximo token e avança o cursor|
+|`nextToken(String delim)`|`String`|Muda o delimitador e retorna o próximo token|
+|`countTokens()`|`int`|Quantidade de tokens restantes (sem consumir)|
+|`hasMoreElements()`|`boolean`|Alias de `hasMoreTokens()` — implementa `Enumeration`|
+|`nextElement()`|`Object`|Alias de `nextToken()` — implementa `Enumeration`|
+
+java
+
+```java
+StringTokenizer st = new StringTokenizer("joao;1;34", ";");
+
+System.out.println(st.countTokens()); // → 3 (sem consumir nenhum)
+System.out.println(st.nextToken());   // → "joao"
+System.out.println(st.countTokens()); // → 2 (um foi consumido)
+```
+
+---
+
+## 3️⃣ Exemplo Real — Lendo Flat File e Criando Objeto
+
+java
+
+```java
+import java.util.StringTokenizer;
+
+public class LeituraFlatFile {
+    public static void main(String[] args) {
+        // Linha de um arquivo delimitado por ';'
+        // Formato: nome;id;idade
+        String linha = "Antonio;1;30";
+
+        StringTokenizer st = new StringTokenizer(linha, ";");
+
+        String nome  = st.nextToken();                    // → "Antonio"
+        int    id    = Integer.parseInt(st.nextToken());  // → 1
+        int    idade = Integer.parseInt(st.nextToken());  // → 30
+
+        Pessoa funcionario = new Pessoa(id, nome, idade);
+        System.out.println("Criado: " + funcionario);
+    }
+}
+```
+
+### Lendo múltiplas linhas
+
+java
+
+```java
+String arquivo = """
+        Antonio;1;30
+        Maria;2;25
+        Carlos;3;40
+        """;
+
+List<Pessoa> pessoas = new ArrayList<>();
+
+// Divide o arquivo em linhas primeiro
+StringTokenizer linhas = new StringTokenizer(arquivo, "\n");
+
+while (linhas.hasMoreTokens()) {
+    String linha = linhas.nextToken().trim();
+    if (linha.isEmpty()) continue;
+
+    // Para cada linha, tokeniza os campos
+    StringTokenizer campos = new StringTokenizer(linha, ";");
+    String nome  = campos.nextToken();
+    int    id    = Integer.parseInt(campos.nextToken());
+    int    idade = Integer.parseInt(campos.nextToken());
+
+    pessoas.add(new Pessoa(id, nome, idade));
+}
+```
+
+---
+
+## ⚖️ `StringTokenizer` vs `split()` — Quando usar cada um?
+
+||`StringTokenizer`|`split()`|
+|---|---|---|
+|**Retorno**|Token por token (lazy)|Array completo de uma vez|
+|**Aceita Regex**|❌ Não — apenas literal|✅ Sim|
+|**Múltiplos delimitadores**|✅ Sim — qualquer char do conjunto|⚠️ Sim, mas via Regex|
+|**Delimitadores consecutivos**|Ignora (trata como um só)|Gera tokens vazios `""`|
+|**Performance (arquivos grandes)**|✅ Melhor (processa um token por vez)|⚠️ Cria todo o array antes|
+|**Parte da API moderna**|⚠️ Legada (desde Java 1.0)|✅ Recomendada atualmente|
+
+### Comportamento com delimitadores consecutivos
+
+java
+
+```java
+String dado = "joao;;34"; // campo vazio entre os ;;
+
+// split() — preserva o campo vazio como token ""
+String[] partes = dado.split(";");
+// → ["joao", "", "34"]   — índice 1 é String vazia
+
+// StringTokenizer — ignora delimitadores consecutivos
+StringTokenizer st = new StringTokenizer(dado, ";");
+// → "joao", "34"          — o campo vazio some!
+```
+
+> ⚠️ **Atenção crítica:** Se o seu arquivo puder ter **campos vazios**, use `split()` — o `StringTokenizer` os ignorará silenciosamente, desalinhando todos os campos seguintes.
+
+### Múltiplos delimitadores com `StringTokenizer`
+
+java
+
+```java
+// StringTokenizer trata cada char do segundo argumento como delimitador separado
+StringTokenizer st = new StringTokenizer("joao;1,34:SP", ";,:");
+// tokens: "joao", "1", "34", "SP"  — divide por ';' OU ',' OU ':'
+```
+
+---
+
+## 📌 Quando usar `StringTokenizer` hoje em dia?
+
+`StringTokenizer` é uma classe **legada** — existe desde o Java 1.0 e nunca foi removida, mas a documentação oficial recomenda `split()` ou `Scanner` para novos projetos.
+
+**Ainda faz sentido usar quando:**
+
+- Trabalhar com código legado que já usa `StringTokenizer`
+- O arquivo é muito grande e você quer processar **um token por vez** sem carregar tudo na memória
+- Precisa de múltiplos delimitadores sem escrever Regex
+
+**Prefira `split()` quando:**
+
+- Precisar de Regex como delimitador
+- Os campos puderem ser vazios
+- A legibilidade for mais importante que micro-otimizações
+
+---
+
+## 📊 Resumo dos Métodos
+
+| Método                            | Retorna   | O que faz                                |
+| --------------------------------- | --------- | ---------------------------------------- |
+| `new StringTokenizer(str, delim)` | —         | Cria o tokenizer com delimitador         |
+| `hasMoreTokens()`                 | `boolean` | Verifica se ainda há tokens              |
+| `nextToken()`                     | `String`  | Consome e retorna o próximo token        |
+| `countTokens()`                   | `int`     | Conta tokens restantes sem consumir      |
+| `nextToken(String novoDelim)`     | `String`  | Muda delimitador e retorna próximo token |
+
+
