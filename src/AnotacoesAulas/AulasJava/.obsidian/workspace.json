@@ -74,12 +74,12 @@
                 "state": {
                   "type": "markdown",
                   "state": {
-                    "file": "JAVA/Estudos Do Curso/Java Intermediario.md",
+                    "file": "JAVA/Java Overview/Threads.md",
                     "mode": "source",
                     "source": false
                   },
                   "icon": "lucide-file",
-                  "title": "Java Intermediario"
+                  "title": "Threads"
                 }
               }
             ],
@@ -127,7 +127,7 @@
                   },
                   "pinned": true,
                   "icon": "terminal",
-                  "title": "Terminal: Selecionar guest4hu@WESLEY: /mnt/c/Users/gusta/OneDrive/Documentos/VISUAL_CODE/EstudosJavaIDE"
+                  "title": "Terminal: C:\\Windows\\System32\\conhost.exe"
                 }
               }
             ]
