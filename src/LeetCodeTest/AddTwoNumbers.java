@@ -9,6 +9,7 @@ public class AddTwoNumbers {
 
 
 
+
     }
 
     public static class ListNode {
@@ -26,6 +27,7 @@ public class AddTwoNumbers {
             this.val = val;
             this.next = next;
         }
+
     }
 
     public static ListNode addTwoNumbers(ListNode l1, ListNode l2) {
@@ -50,7 +52,6 @@ public class AddTwoNumbers {
             carry = sum / 10;
 
             current.next = new ListNode(sum % 10);
-
             current = current.next;
         }
 

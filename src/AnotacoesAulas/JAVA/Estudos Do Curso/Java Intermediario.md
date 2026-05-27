@@ -2896,3 +2896,4 @@ StringTokenizer st = new StringTokenizer("joao;1,34:SP", ";,:");
 | `nextToken(String novoDelim)`     | `String`  | Muda delimitador e retorna próximo token |
 
 
+# Classes Utilitarias Java
